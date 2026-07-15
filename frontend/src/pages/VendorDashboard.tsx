@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { Users, CheckCircle, XCircle, Clock, RefreshCw } from 'lucide-react';
 import { dashboardService } from '../services/dashboardService';
 import { formatCurrency } from '../utils';
@@ -38,6 +39,15 @@ export default function VendorDashboard() {
     refetchInterval: 30000,
   });
 
+  const handleRefresh = async () => {
+    try {
+      await refetch();
+      toast.success('Vendor statistics refreshed!');
+    } catch {
+      toast.error('Failed to refresh vendor statistics.');
+    }
+  };
+
   const summary = dashboardData?.summary;
   const countryDistribution = dashboardData?.countryDistribution || [];
   const monthlyCreation = dashboardData?.monthlyCreation || [];
@@ -52,7 +62,7 @@ export default function VendorDashboard() {
           <p className="text-muted text-sm mt-0.5">Analytics and insights across all vendors</p>
         </div>
         <button
-          onClick={() => refetch()}
+          onClick={handleRefresh}
           className={cn('btn-ghost flex items-center gap-2 text-sm', isRefetching && 'opacity-60')}
         >
           <RefreshCw size={14} className={isRefetching ? 'animate-spin' : ''} />

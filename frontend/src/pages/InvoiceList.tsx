@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Trash2, Eye, Edit2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, Download } from 'lucide-react';
+import { Search, Trash2, Eye, Edit2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, Download, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { invoiceService } from '../services/invoiceService';
 import { vendorService } from '../services/vendorService';
@@ -212,7 +212,7 @@ export default function InvoiceList() {
   const [editInvoice, setEditInvoice] = useState<Invoice | null>(null);
   const { user } = useAuthStore();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['invoices', search, statusFilter, vendorFilter, page, sortField, sortDir],
     queryFn: () =>
       invoiceService.getAll({
@@ -225,6 +225,15 @@ export default function InvoiceList() {
       }).then((apiResponse) => apiResponse.data),
     refetchInterval: 8000,
   });
+
+  const handleRefresh = async () => {
+    try {
+      await refetch();
+      toast.success('Invoices list refreshed!');
+    } catch {
+      toast.error('Failed to refresh invoices.');
+    }
+  };
 
   const { data: vendorsRes } = useQuery({
     queryKey: ['vendors-select'],
@@ -275,6 +284,22 @@ export default function InvoiceList() {
 
   return (
     <div className="space-y-5 animate-fade-in">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-white">Invoice Catalog</h2>
+          <p className="text-muted text-sm mt-0.5">Manage and track accounts payable pipeline</p>
+        </div>
+        <button
+          onClick={handleRefresh}
+          className={cn('btn-ghost flex items-center gap-2 text-sm', isRefetching && 'opacity-60')}
+          title="Refresh latest data"
+        >
+          <RefreshCw size={14} className={isRefetching ? 'animate-spin' : ''} />
+          Refresh
+        </button>
+      </div>
+
       {/* Filters */}
       <div className="glass-card p-4 flex flex-wrap gap-3 items-center">
         <div className="flex items-center gap-2 bg-surface border border-border rounded-xl px-3 py-2 flex-1 min-w-[200px]">

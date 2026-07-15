@@ -83,7 +83,7 @@ function StepTracker({ status }: { status: InvoiceStatus }) {
   return (
     <div className="flex items-center gap-1 mt-6 overflow-x-auto pb-2">
       {PROCESSING_STEPS.map((step, idx) => {
-        const done   = currentIdx >= idx && !isFailed;
+        const done = currentIdx >= idx && !isFailed;
         const active = currentIdx === idx && !isFailed;
         return (
           <div key={step} className="flex items-center gap-1 shrink-0">
@@ -120,12 +120,12 @@ function StepTracker({ status }: { status: InvoiceStatus }) {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function InvoiceUpload() {
   const queryClient = useQueryClient();
-  const [fileState, setFileState]           = useState<FileState | null>(null);
-  const [dragging, setDragging]             = useState(false);
-  const [vendorId, setVendorId]             = useState('');
-  const [invoiceNumber, setInvoiceNumber]   = useState('');
-  const [amount, setAmount]                 = useState('');
-  const [currency, setCurrency]             = useState('INR');
+  const [fileState, setFileState] = useState<FileState | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [vendorId, setVendorId] = useState('');
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [amount, setAmount] = useState('');
+  const [currency, setCurrency] = useState('INR');
   const [uploadedInvoice, setUploadedInvoice] = useState<Invoice | null>(null);
   const [uploadTimestamp, setUploadTimestamp] = useState<Date | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -154,7 +154,7 @@ export default function InvoiceUpload() {
       setUploadedInvoice(invoice);
       setUploadTimestamp(new Date());
       toast.success(`Invoice ${invoice.invoiceNumber} uploaded! Processing started.`);
-      
+
       /* Log the complete API return response to the console */
       console.log('UPLOAD INVOICE API RESPONSE (201 Created):', {
         invoiceId: invoice._id,
@@ -237,11 +237,6 @@ export default function InvoiceUpload() {
           <h2 className="text-xl font-bold text-white">Upload Invoice</h2>
           <p className="text-muted text-sm mt-0.5">Supports PDF, PNG, JPG — max 10 MB per file</p>
         </div>
-        <div className="flex gap-2">
-          {['PDF', 'PNG', 'JPG'].map((ext) => (
-            <span key={ext} className="badge bg-border/40 text-muted text-xs px-3 py-1">{ext}</span>
-          ))}
-        </div>
       </div>
 
       {/* ── Two column layout ── */}
@@ -264,8 +259,8 @@ export default function InvoiceUpload() {
                   dragging
                     ? 'border-accent bg-accent/10 scale-[1.01]'
                     : fileState
-                    ? 'border-accent/30 bg-accent/5 cursor-default'
-                    : 'border-border hover:border-accent/50 hover:bg-white/[0.02]',
+                      ? 'border-accent/30 bg-accent/5 cursor-default'
+                      : 'border-border hover:border-accent/50 hover:bg-white/[0.02]',
                 )}
               >
                 {!fileState ? (
@@ -416,9 +411,9 @@ export default function InvoiceUpload() {
               <h3 className="text-sm font-semibold text-white">Supported Formats</h3>
               <div className="space-y-2.5">
                 {[
-                  { ext: 'PDF',  color: 'text-red-400',  bg: 'bg-red-500/10',  border: 'border-red-500/20',  desc: 'Best for scanned & digital invoices' },
-                  { ext: 'PNG',  color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', desc: 'High-quality image invoices' },
-                  { ext: 'JPG',  color: 'text-amber-400',bg: 'bg-amber-500/10',border: 'border-amber-500/20',desc: 'Compressed photo invoices' },
+                  { ext: 'PDF', color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', desc: 'Best for scanned & digital invoices' },
+                  { ext: 'PNG', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', desc: 'High-quality image invoices' },
+                  { ext: 'JPG', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', desc: 'Compressed photo invoices' },
                 ].map(({ ext, color, bg, border, desc }) => (
                   <div key={ext} className={cn('flex items-center gap-3 p-3 rounded-xl border', bg, border)}>
                     <span className={cn('text-xs font-bold font-mono w-8', color)}>{ext}</span>

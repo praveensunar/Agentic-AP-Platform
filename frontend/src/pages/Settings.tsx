@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { Settings as SettingsIcon, Bell, Palette, Info } from 'lucide-react';
+import { useSettingsStore } from '../store/useSettingsStore';
 import { cn } from '../lib/utils';
 
 interface ToggleSwitchProps {
@@ -36,17 +36,17 @@ function ToggleSwitch({ isEnabled, onToggle, switchLabel, switchDescription }: T
 }
 
 export default function Settings() {
-  // Notification preferences
-  const [invoiceUploadAlerts,    setInvoiceUploadAlerts]    = useState(true);
-  const [processingAlerts,       setProcessingAlerts]       = useState(true);
-  const [approvalAlerts,         setApprovalAlerts]         = useState(true);
-  const [failureAlerts,          setFailureAlerts]          = useState(true);
-  const [vendorAlerts,           setVendorAlerts]           = useState(false);
-
-  // App preferences
-  const [autoRefreshEnabled,     setAutoRefreshEnabled]     = useState(true);
-  const [soundNotifications,     setSoundNotifications]     = useState(false);
-  const [compactTableView,       setCompactTableView]       = useState(false);
+  const {
+    invoiceUploadAlerts,
+    processingAlerts,
+    approvalAlerts,
+    failureAlerts,
+    vendorAlerts,
+    autoRefreshEnabled,
+    soundNotifications,
+    compactTableView,
+    setSetting,
+  } = useSettingsStore();
 
   const settingsSections = [
     {
@@ -59,31 +59,31 @@ export default function Settings() {
           toggleLabel:       'Invoice Upload Alerts',
           toggleDescription: 'Get notified when a new invoice is uploaded',
           isEnabled:         invoiceUploadAlerts,
-          onToggle:          () => setInvoiceUploadAlerts((prev) => !prev),
+          onToggle:          () => setSetting('invoiceUploadAlerts', !invoiceUploadAlerts),
         },
         {
           toggleLabel:       'Processing Status Alerts',
           toggleDescription: 'Receive updates at each processing step',
           isEnabled:         processingAlerts,
-          onToggle:          () => setProcessingAlerts((prev) => !prev),
+          onToggle:          () => setSetting('processingAlerts', !processingAlerts),
         },
         {
           toggleLabel:       'Approval Alerts',
           toggleDescription: 'Notify when an invoice is approved',
           isEnabled:         approvalAlerts,
-          onToggle:          () => setApprovalAlerts((prev) => !prev),
+          onToggle:          () => setSetting('approvalAlerts', !approvalAlerts),
         },
         {
           toggleLabel:       'Failure Alerts',
           toggleDescription: 'Notify when an invoice fails processing',
           isEnabled:         failureAlerts,
-          onToggle:          () => setFailureAlerts((prev) => !prev),
+          onToggle:          () => setSetting('failureAlerts', !failureAlerts),
         },
         {
           toggleLabel:       'Vendor Activity Alerts',
           toggleDescription: 'Notify when vendors are created or updated',
           isEnabled:         vendorAlerts,
-          onToggle:          () => setVendorAlerts((prev) => !prev),
+          onToggle:          () => setSetting('vendorAlerts', !vendorAlerts),
         },
       ],
     },
@@ -97,19 +97,19 @@ export default function Settings() {
           toggleLabel:       'Auto-Refresh Data',
           toggleDescription: 'Automatically refresh tables and charts every 30 seconds',
           isEnabled:         autoRefreshEnabled,
-          onToggle:          () => setAutoRefreshEnabled((prev) => !prev),
+          onToggle:          () => setSetting('autoRefreshEnabled', !autoRefreshEnabled),
         },
         {
           toggleLabel:       'Sound Notifications',
           toggleDescription: 'Play a sound when new notifications arrive',
           isEnabled:         soundNotifications,
-          onToggle:          () => setSoundNotifications((prev) => !prev),
+          onToggle:          () => setSetting('soundNotifications', !soundNotifications),
         },
         {
           toggleLabel:       'Compact Table View',
           toggleDescription: 'Show more rows with reduced row height',
           isEnabled:         compactTableView,
-          onToggle:          () => setCompactTableView((prev) => !prev),
+          onToggle:          () => setSetting('compactTableView', !compactTableView),
         },
       ],
     },

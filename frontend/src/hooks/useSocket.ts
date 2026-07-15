@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNotificationStore } from '../store/useNotificationStore';
+import { useSettingsStore } from '../store/useSettingsStore';
+import { playNotificationSound } from '../utils/audio';
 import type { InvoiceStatusUpdate, Notification } from '../types';
 
 const BACKEND_SOCKET_URL = import.meta.env.VITE_SOCKET_URL ?? 'http://localhost:5000';
@@ -35,6 +37,11 @@ export function useSocket() {
     // When a new notification arrives, add it to the global notification store
     socketConnection.on('notification:new', (incomingNotification: Notification) => {
       addNotification(incomingNotification);
+      
+      // Play sound chime if enabled in settings store
+      if (useSettingsStore.getState().soundNotifications) {
+        playNotificationSound();
+      }
     });
 
     // Clean up the socket connection when the component unmounts
