@@ -181,7 +181,7 @@ function VendorFormModal({ existingVendor, onClose, onSaved }: VendorFormModalPr
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-      <div className="glass-card w-full max-w-2xl p-6 animate-slide-in max-h-[92vh] overflow-y-auto">
+      <div className="glass-card w-full max-w-2xl p-6 animate-slide-in max-h-[92vh] overflow-y-auto no-scrollbar">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -399,7 +399,7 @@ function VendorViewModal({ vendor, onClose, onEdit }: { vendor: Vendor; onClose:
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-      <div className="glass-card w-full max-w-md p-6 animate-slide-in max-h-[92vh] overflow-y-auto">
+      <div className="glass-card w-full max-w-md p-6 animate-slide-in max-h-[92vh] overflow-y-auto no-scrollbar">
 
         {/* Header */}
         <div className="flex items-start justify-between mb-5">

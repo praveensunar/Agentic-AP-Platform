@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import {
   FileText, Clock, CheckCircle, XCircle, Users,
   TrendingUp, AlertCircle, RefreshCw,
@@ -42,6 +43,15 @@ export default function Dashboard() {
     refetchInterval: 30000,
   });
 
+  const handleRefresh = async () => {
+    try {
+      await refetch();
+      toast.success('Dashboard statistics refreshed!');
+    } catch (err) {
+      toast.error('Failed to fetch latest statistics.');
+    }
+  };
+
   const summary = data?.summary;
 
   return (
@@ -53,7 +63,7 @@ export default function Dashboard() {
           <p className="text-muted text-sm mt-0.5">Real-time accounts payable metrics</p>
         </div>
         <button
-          onClick={() => refetch()}
+          onClick={handleRefresh}
           className={cn('btn-ghost flex items-center gap-2 text-sm', isRefetching && 'opacity-60')}
         >
           <RefreshCw size={14} className={isRefetching ? 'animate-spin' : ''} />
@@ -167,7 +177,7 @@ export default function Dashboard() {
           <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center">
             <TrendingUp size={28} className="text-accent" />
           </div>
-          <p className="text-3xl font-bold text-white">~22s</p>
+          <p className="text-3xl font-bold text-white">22 sec</p>
           <p className="text-muted text-sm">Avg Processing Time</p>
           <p className="text-xs text-muted/60">End-to-end AI pipeline</p>
         </div>
