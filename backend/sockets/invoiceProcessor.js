@@ -60,9 +60,22 @@ async function startProcessingPipeline(socketServer, invoiceId) {
       type:    'invoice',
     });
 
+    const startTime = Date.now();
+
     // Step through each processing status with timed delays
     for (const processingStep of PROCESSING_STATUS_STEPS) {
-      await waitFor(processingStep.delayMs);
+      const elapsed = Date.now() - startTime;
+      const remaining = processingStep.delayMs - elapsed;
+      if (remaining > 0) {
+        await waitFor(remaining);
+      }
+
+      // Check if the invoice has been deleted in the meantime
+      const currentRecord = db.findById('invoices', invoiceId);
+      if (!currentRecord) {
+        console.log(`[Pipeline] Invoice ${invoiceId} was deleted. Stopping processing pipeline.`);
+        return;
+      }
 
       // Update the invoice status in database
       db.findByIdAndUpdate('invoices', invoiceId, { status: processingStep.status });
@@ -84,7 +97,18 @@ async function startProcessingPipeline(socketServer, invoiceId) {
     }
 
     // ── Final Decision: Approved or Failed ────────────────────────────────────
-    await waitFor(FINAL_DECISION_DELAY_MS);
+    const elapsed = Date.now() - startTime;
+    const remaining = FINAL_DECISION_DELAY_MS - elapsed;
+    if (remaining > 0) {
+      await waitFor(remaining);
+    }
+
+    // Check if the invoice has been deleted in the meantime
+    const currentRecord = db.findById('invoices', invoiceId);
+    if (!currentRecord) {
+      console.log(`[Pipeline] Invoice ${invoiceId} was deleted before final decision. Stopping pipeline.`);
+      return;
+    }
 
     const invoicePassedValidation = Math.random() < 0.85; // 85% approval rate
     const finalStatus = invoicePassedValidation ? 'Approved' : 'Failed';

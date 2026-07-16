@@ -23,7 +23,7 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     const status = err.response?.status;
-    if (status === 401 || status === 403) {
+    if (status === 401) {
       useAuthStore.getState().logout();
     }
     const message = err.response?.data?.message || 'Something went wrong';
