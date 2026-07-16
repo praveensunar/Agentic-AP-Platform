@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, Upload, Users, BarChart3,
-  Settings, ChevronLeft, ChevronRight, Zap, LogOut,
+  Settings, ChevronLeft, ChevronRight, Zap, LogOut, X,
 } from 'lucide-react';
 import { useUIStore } from '../../store/useUIStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -17,7 +17,7 @@ const NAV_ITEMS = [
 ];
 
 export default function Sidebar() {
-  const { sidebarOpen, toggleSidebar } = useUIStore();
+  const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore();
   const { user, logout } = useAuthStore();
   const location = useLocation();
 
@@ -29,22 +29,42 @@ export default function Sidebar() {
   });
 
   return (
-    <aside
-      className={cn(
-        'relative flex flex-col bg-surface border-r border-border transition-all duration-300 ease-in-out shrink-0',
-        sidebarOpen ? 'w-60' : 'w-16'
+    <>
+      {/* Mobile sidebar backdrop overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden animate-fade-in"
+          onClick={() => setSidebarOpen(false)}
+        />
       )}
-    >
+
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-40 md:relative flex flex-col bg-surface border-r border-border transition-all duration-300 ease-in-out shrink-0 h-full',
+          sidebarOpen ? 'w-60 translate-x-0' : 'w-16 -translate-x-full md:translate-x-0'
+        )}
+      >
       {/* Logo */}
-      <div className={cn('flex items-center gap-3 p-4 border-b border-border h-16', !sidebarOpen && 'justify-center')}>
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center shrink-0 shadow-glow-sm">
-          <Zap size={16} className="text-white" />
+      <div className={cn('flex items-center justify-between p-4 border-b border-border h-16', !sidebarOpen && 'justify-center')}>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center shrink-0 shadow-glow-sm">
+            <Zap size={16} className="text-white" />
+          </div>
+          {sidebarOpen && (
+            <div className="animate-fade-in overflow-hidden">
+              <p className="text-white font-bold text-sm leading-tight">Agentic AP</p>
+              <p className="text-muted text-xs leading-tight">Platform</p>
+            </div>
+          )}
         </div>
         {sidebarOpen && (
-          <div className="animate-fade-in overflow-hidden">
-            <p className="text-white font-bold text-sm leading-tight">Agentic AP</p>
-            <p className="text-muted text-xs leading-tight">Platform</p>
-          </div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="text-muted hover:text-white p-1 rounded-lg hover:bg-white/5 md:hidden"
+            title="Close sidebar"
+          >
+            <X size={18} />
+          </button>
         )}
       </div>
 
@@ -65,6 +85,11 @@ export default function Sidebar() {
               key={to}
               to={to}
               title={!sidebarOpen ? label : undefined}
+              onClick={() => {
+                if (window.innerWidth < 768) {
+                  setSidebarOpen(false);
+                }
+              }}
               className={cn(
                 'nav-link group',
                 isActive && 'active',
@@ -83,7 +108,7 @@ export default function Sidebar() {
       {/* Collapse Button */}
       <button
         onClick={toggleSidebar}
-        className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-6 h-6 rounded-full bg-card border border-border text-muted hover:text-white hover:border-accent transition-all duration-200 flex items-center justify-center shadow-card"
+        className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-6 h-6 rounded-full bg-card border border-border text-muted hover:text-white hover:border-accent transition-all duration-200 hidden md:flex items-center justify-center shadow-card"
       >
         {sidebarOpen ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
       </button>
@@ -121,5 +146,6 @@ export default function Sidebar() {
         )}
       </div>
     </aside>
+    </>
   );
 }

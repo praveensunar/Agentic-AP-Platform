@@ -9,6 +9,7 @@ import { formatCurrency, formatDate, STATUS_CONFIG } from '../utils';
 import StatusPieChart from '../components/charts/StatusPieChart';
 import InvoiceBarChart from '../components/charts/InvoiceBarChart';
 import { cn } from '../lib/utils';
+import { useSettingsStore } from '../store/useSettingsStore';
 
 interface StatCardProps {
   label: string;
@@ -37,17 +38,19 @@ function StatCard({ label, value, icon: Icon, color, bgColor, sub }: StatCardPro
 }
 
 export default function Dashboard() {
+  const { autoRefreshEnabled } = useSettingsStore();
+
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => dashboardService.getDashboard().then((r) => r.data.data),
-    refetchInterval: 30000,
+    refetchInterval: autoRefreshEnabled ? 30000 : false,
   });
 
   const handleRefresh = async () => {
     try {
       await refetch();
       toast.success('Dashboard statistics refreshed!');
-    } catch (err) {
+    } catch {
       toast.error('Failed to fetch latest statistics.');
     }
   };
@@ -73,7 +76,7 @@ export default function Dashboard() {
 
       {/* KPI Cards */}
       {isLoading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="stat-card animate-pulse">
               <div className="w-10 h-10 rounded-xl bg-border" />
@@ -83,7 +86,7 @@ export default function Dashboard() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           <StatCard
             label="Total Invoices"
             value={summary?.totalInvoices ?? 0}

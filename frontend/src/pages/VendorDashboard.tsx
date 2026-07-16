@@ -8,6 +8,7 @@ import VendorInvoiceChart from '../components/charts/VendorInvoiceChart';
 import CountryVendorChart from '../components/charts/CountryVendorChart';
 import MonthlyVendorChart from '../components/charts/MonthlyVendorChart';
 import type { VendorStat } from '../types';
+import { useSettingsStore } from '../store/useSettingsStore';
 
 // ── Summary Card Component ────────────────────────────────────────────────────
 
@@ -32,11 +33,13 @@ function SummaryCard({ cardLabel, cardValue, cardIcon: IconComponent, iconColor,
 }
 
 export default function VendorDashboard() {
+  const { autoRefreshEnabled } = useSettingsStore();
+
   const { data: dashboardData, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['vendor-dashboard'],
     queryFn: () =>
       dashboardService.getVendorDashboard().then((apiResponse) => apiResponse.data.data),
-    refetchInterval: 30000,
+    refetchInterval: autoRefreshEnabled ? 30000 : false,
   });
 
   const handleRefresh = async () => {
@@ -72,7 +75,7 @@ export default function VendorDashboard() {
 
       {/* Summary Cards Row */}
       {isLoading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, cardIndex) => (
             <div key={cardIndex} className="stat-card animate-pulse">
               <div className="w-10 h-10 rounded-xl bg-border" />
@@ -82,7 +85,7 @@ export default function VendorDashboard() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           <SummaryCard
             cardLabel="Total Vendors"
             cardValue={summary?.totalVendors ?? 0}
@@ -169,21 +172,23 @@ export default function VendorDashboard() {
                 <th className="text-left px-5 py-3.5 font-medium">Vendor</th>
                 <th className="text-right px-4 py-3.5 font-medium">Invoices</th>
                 <th className="text-right px-4 py-3.5 font-medium">Total Amount</th>
-                <th className="text-right px-4 py-3.5 font-medium">Approved</th>
-                <th className="text-right px-4 py-3.5 font-medium">Failed</th>
+                <th className="text-right px-4 py-3.5 font-medium hidden sm:table-cell">Approved</th>
+                <th className="text-right px-4 py-3.5 font-medium hidden sm:table-cell">Failed</th>
                 <th className="text-center px-4 py-3.5 font-medium">Approval Rate</th>
-                <th className="text-center px-4 py-3.5 font-medium">Avg Confidence</th>
+                <th className="text-center px-4 py-3.5 font-medium hidden sm:table-cell">Avg Confidence</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, rowIndex) => (
                   <tr key={rowIndex} className="border-b border-border/30">
-                    {Array.from({ length: 7 }).map((_, colIndex) => (
-                      <td key={colIndex} className="px-4 py-3.5">
-                        <div className="h-4 bg-border/30 rounded animate-pulse" />
-                      </td>
-                    ))}
+                    <td className="px-4 py-3.5"><div className="h-4 bg-border/30 rounded animate-pulse" /></td>
+                    <td className="px-4 py-3.5"><div className="h-4 bg-border/30 rounded animate-pulse" /></td>
+                    <td className="px-4 py-3.5"><div className="h-4 bg-border/30 rounded animate-pulse" /></td>
+                    <td className="px-4 py-3.5 hidden sm:table-cell"><div className="h-4 bg-border/30 rounded animate-pulse" /></td>
+                    <td className="px-4 py-3.5 hidden sm:table-cell"><div className="h-4 bg-border/30 rounded animate-pulse" /></td>
+                    <td className="px-4 py-3.5"><div className="h-4 bg-border/30 rounded animate-pulse" /></td>
+                    <td className="px-4 py-3.5 hidden sm:table-cell"><div className="h-4 bg-border/30 rounded animate-pulse" /></td>
                   </tr>
                 ))
               ) : !performance.length ? (
@@ -213,10 +218,10 @@ export default function VendorDashboard() {
                       <td className="px-4 py-3.5 text-right text-white">
                         {formatCurrency(vendorStat.totalAmount)}
                       </td>
-                      <td className="px-4 py-3.5 text-right text-emerald-400 font-medium">
+                      <td className="px-4 py-3.5 text-right text-emerald-400 font-medium hidden sm:table-cell">
                         {vendorStat.approvedCount}
                       </td>
-                      <td className="px-4 py-3.5 text-right text-red-400 font-medium">
+                      <td className="px-4 py-3.5 text-right text-red-400 font-medium hidden sm:table-cell">
                         {vendorStat.failedCount}
                       </td>
                       <td className="px-4 py-3.5 text-center">
@@ -235,7 +240,7 @@ export default function VendorDashboard() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3.5 text-center">
+                      <td className="px-4 py-3.5 text-center hidden sm:table-cell">
                         {vendorStat.avgConfidenceScore != null ? (
                           <span className={cn('font-semibold',
                             vendorStat.avgConfidenceScore >= 80 ? 'text-emerald-400' :

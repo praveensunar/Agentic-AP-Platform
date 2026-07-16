@@ -19,7 +19,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
 };
 
 export default function Navbar() {
-  const { toggleSidebar, toggleNotificationDrawer } = useUIStore();
+  const { sidebarOpen, toggleSidebar, toggleNotificationDrawer } = useUIStore();
   const { unreadCount } = useNotificationStore();
   const location = useLocation();
   const navigate = useNavigate();
@@ -105,18 +105,22 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="h-16 flex items-center justify-between px-6 bg-surface border-b border-border shrink-0">
+      <header className="h-16 flex items-center justify-between px-4 sm:px-6 bg-surface border-b border-border shrink-0">
         {/* Left */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={toggleSidebar}
-            className="text-muted hover:text-white p-1.5 rounded-lg hover:bg-white/5 transition-colors md:hidden"
-          >
-            <Menu size={18} />
-          </button>
-          <div>
-            <h1 className="text-white font-semibold text-base leading-tight">{page.title}</h1>
-            <p className="text-muted text-xs leading-tight">{page.subtitle}</p>
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          {!sidebarOpen && (
+            <button
+              onClick={toggleSidebar}
+              className="text-muted hover:text-white p-1.5 rounded-lg hover:bg-white/5 transition-colors md:hidden shrink-0"
+            >
+              <Menu size={18} />
+            </button>
+          )}
+          <div className="min-w-0">
+            <h1 className="text-white font-semibold text-sm sm:text-base leading-tight truncate">{page.title}</h1>
+            {page.subtitle && (
+              <p className="text-muted text-[10px] sm:text-xs leading-tight hidden sm:block truncate mt-0.5">{page.subtitle}</p>
+            )}
           </div>
         </div>
 

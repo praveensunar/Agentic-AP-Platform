@@ -11,6 +11,7 @@ import { formatDate, exportToCSV } from '../utils';
 import { cn } from '../lib/utils';
 import type { Vendor } from '../types';
 import { CustomDropdown } from '../components/ui/CustomDropdown';
+import { useSettingsStore } from '../store/useSettingsStore';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -503,6 +504,7 @@ function DeleteConfirmModal({ vendor, onCancel, onConfirm, isDeleting }: {
 
 export default function Vendors() {
   const queryClient = useQueryClient();
+  const { compactTableView } = useSettingsStore();
 
   const [searchText, setSearchText]       = useState('');
   const [statusFilter, setStatusFilter]   = useState('');
@@ -594,9 +596,9 @@ export default function Vendors() {
             {pagination?.total ?? 0} vendor{pagination?.total !== 1 ? 's' : ''} registered
           </p>
         </div>
-        <button onClick={openAdd} className="btn-primary flex items-center gap-2">
+        <button onClick={openAdd} className="btn-primary flex items-center justify-center p-2.5 sm:px-4 sm:py-2 gap-2 shrink-0">
           <Plus size={16} />
-          Add Vendor
+          <span className="hidden sm:inline">Add Vendor</span>
         </button>
       </div>
 
@@ -658,20 +660,20 @@ export default function Vendors() {
             <thead className="border-b border-border">
               <tr className="text-muted text-xs uppercase tracking-wide">
                 {[
-                  { label: 'Vendor',  field: 'vendorName' },
-                  { label: 'Code',    field: 'vendorCode' },
-                  { label: 'Email',   field: 'email' },
-                  { label: 'GST No.', field: 'gstNumber' },
-                  { label: 'PAN No.', field: 'panNumber' },
-                  { label: 'Phone',   field: 'phone' },
-                  { label: 'Country', field: 'country' },
-                  { label: 'Status',  field: 'status' },
-                  { label: 'Added',   field: 'createdAt' },
-                ].map(({ label, field }) => (
+                  { label: 'Vendor',  field: 'vendorName', className: '' },
+                  { label: 'Code',    field: 'vendorCode', className: '' },
+                  { label: 'Email',   field: 'email',      className: 'hidden lg:table-cell' },
+                  { label: 'GST No.', field: 'gstNumber',  className: 'hidden xl:table-cell' },
+                  { label: 'PAN No.', field: 'panNumber',  className: 'hidden xl:table-cell' },
+                  { label: 'Phone',   field: 'phone',      className: 'hidden lg:table-cell' },
+                  { label: 'Country', field: 'country',    className: 'hidden md:table-cell' },
+                  { label: 'Status',  field: 'status',     className: '' },
+                  { label: 'Added',   field: 'createdAt',  className: 'hidden md:table-cell' },
+                ].map(({ label, field, className }) => (
                   <th
                     key={field}
                     onClick={() => handleSort(field)}
-                    className="text-left px-4 py-3.5 font-medium cursor-pointer hover:text-white transition-colors select-none whitespace-nowrap"
+                    className={cn("text-left px-4 py-3.5 font-medium cursor-pointer hover:text-white transition-colors select-none whitespace-nowrap", className)}
                   >
                     <div className="flex items-center gap-1">
                       <span>{label}</span>
@@ -705,60 +707,63 @@ export default function Vendors() {
                   </td>
                 </tr>
               ) : (
-                vendorPageData.data.map((v) => (
-                  <tr key={v._id} className="table-row">
-                    <td className="px-4 py-3.5 font-medium text-white">{v.vendorName}</td>
-                    <td className="px-4 py-3.5 font-mono text-accent text-xs font-semibold">{v.vendorCode}</td>
-                    <td className="px-4 py-3.5 text-muted text-xs">{v.email}</td>
-                    <td className="px-4 py-3.5 text-muted text-xs font-mono">{v.gstNumber || '—'}</td>
-                    <td className="px-4 py-3.5 text-muted text-xs font-mono">{v.panNumber || '—'}</td>
-                    <td className="px-4 py-3.5 text-muted text-xs">{v.phone || '—'}</td>
-                    <td className="px-4 py-3.5 text-muted text-xs">{v.country || '—'}</td>
-                    <td className="px-4 py-3.5">
-                      <span className={cn(
-                        'badge text-xs',
-                        v.status === 'Active'
-                          ? 'bg-emerald-500/10 text-emerald-400'
-                          : v.status === 'Inactive'
-                          ? 'bg-red-500/10 text-red-400'
-                          : 'bg-yellow-500/10 text-yellow-400',
-                      )}>
-                        {v.status === 'Active'
-                          ? <CheckCircle size={10} className="mr-1" />
-                          : v.status === 'Inactive'
-                          ? <XCircle size={10} className="mr-1" />
-                          : <AlertTriangle size={10} className="mr-1" />}
-                        {v.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-muted text-xs">{formatDate(v.createdAt)}</td>
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          onClick={() => setViewVendor(v)}
-                          className="p-1.5 text-muted hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
-                          title="View details"
-                        >
-                          <Eye size={15} />
-                        </button>
-                        <button
-                          onClick={() => openEdit(v)}
-                          className="p-1.5 text-muted hover:text-accent hover:bg-accent/10 rounded-lg transition-colors"
-                          title="Edit vendor"
-                        >
-                          <Edit2 size={15} />
-                        </button>
-                        <button
-                          onClick={() => setDeleteTarget(v)}
-                          className="p-1.5 text-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                          title="Delete vendor"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                vendorPageData.data.map((v) => {
+                  const cellPadding = compactTableView ? 'py-1.5' : 'py-3.5';
+                  return (
+                    <tr key={v._id} className="table-row">
+                      <td className={cn('px-4 font-medium text-white', cellPadding)}>{v.vendorName}</td>
+                      <td className={cn('px-4 font-mono text-accent text-xs font-semibold', cellPadding)}>{v.vendorCode}</td>
+                      <td className={cn('px-4 text-muted text-xs hidden lg:table-cell', cellPadding)}>{v.email}</td>
+                      <td className={cn('px-4 text-muted text-xs font-mono hidden xl:table-cell', cellPadding)}>{v.gstNumber || '—'}</td>
+                      <td className={cn('px-4 text-muted text-xs font-mono hidden xl:table-cell', cellPadding)}>{v.panNumber || '—'}</td>
+                      <td className={cn('px-4 text-muted text-xs hidden lg:table-cell', cellPadding)}>{v.phone || '—'}</td>
+                      <td className={cn('px-4 text-muted text-xs hidden md:table-cell', cellPadding)}>{v.country || '—'}</td>
+                      <td className={cn('px-4', cellPadding)}>
+                        <span className={cn(
+                          'badge text-xs',
+                          v.status === 'Active'
+                            ? 'bg-emerald-500/10 text-emerald-400'
+                            : v.status === 'Inactive'
+                            ? 'bg-red-500/10 text-red-400'
+                            : 'bg-yellow-500/10 text-yellow-400',
+                        )}>
+                          {v.status === 'Active'
+                            ? <CheckCircle size={10} className="mr-1" />
+                            : v.status === 'Inactive'
+                            ? <XCircle size={10} className="mr-1" />
+                            : <AlertTriangle size={10} className="mr-1" />}
+                          {v.status}
+                        </span>
+                      </td>
+                      <td className={cn('px-4 text-muted text-xs hidden md:table-cell', cellPadding)}>{formatDate(v.createdAt)}</td>
+                      <td className={cn('px-4', cellPadding)}>
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => setViewVendor(v)}
+                            className="p-1.5 text-muted hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                            title="View details"
+                          >
+                            <Eye size={15} />
+                          </button>
+                          <button
+                            onClick={() => openEdit(v)}
+                            className="p-1.5 text-muted hover:text-accent hover:bg-accent/10 rounded-lg transition-colors"
+                            title="Edit vendor"
+                          >
+                            <Edit2 size={15} />
+                          </button>
+                          <button
+                            onClick={() => setDeleteTarget(v)}
+                            className="p-1.5 text-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                            title="Delete vendor"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

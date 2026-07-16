@@ -15,8 +15,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime:         1000 * 60,      // 1 minute before data is considered stale
-      retry:             1,              // Retry failed requests once
+      staleTime: 1000 * 60,      // 1 minute before data is considered stale
+      retry: 1,              // Retry failed requests once
       refetchOnWindowFocus: false,       // Disable refetch on tab switch
     },
   },
@@ -33,15 +33,15 @@ export default function App() {
           {/* Authenticated Application Shell */}
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Layout />}>
-              <Route index              element={<Dashboard />}       />
-              <Route path="invoice-upload" element={<InvoiceUpload />}   />
-              <Route path="invoices"    element={<InvoiceList />}    />
+              <Route index element={<Dashboard />} />
+              <Route path="invoice-upload" element={<InvoiceUpload />} />
+              <Route path="invoices" element={<InvoiceList />} />
               <Route path="vendor-dashboard" element={<VendorDashboard />} />
 
               {/* Admin-only restricted views */}
               <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>
-                <Route path="vendors"     element={<Vendors />}        />
-                <Route path="settings"    element={<Settings />}       />
+                <Route path="vendors" element={<Vendors />} />
+                <Route path="settings" element={<Settings />} />
               </Route>
             </Route>
           </Route>
@@ -52,16 +52,19 @@ export default function App() {
       <Toaster
         position="top-right"
         toastOptions={{
-          duration: 4000,
+          duration: 2500,
           style: {
-            background: '#1a2236',
+            background: 'rgba(30, 41, 59, 0.50)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
             color: '#fff',
-            border: '1px solid #1f2d45',
-            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: '16px',
             fontSize: '14px',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)',
           },
-          success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
-          error:   { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
+          success: { iconTheme: { primary: '#10b981', secondary: '#1e293b' } },
+          error: { iconTheme: { primary: '#ef4444', secondary: '#1e293b' } },
         }}
       />
     </QueryClientProvider>

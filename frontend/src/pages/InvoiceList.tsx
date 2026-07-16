@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Trash2, Eye, Edit2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, Download, RefreshCw } from 'lucide-react';
+import { Search, Trash2, Eye, Edit2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, Download, RefreshCw, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { invoiceService } from '../services/invoiceService';
 import { vendorService } from '../services/vendorService';
@@ -9,6 +9,7 @@ import { cn } from '../lib/utils';
 import type { Invoice, InvoiceStatus } from '../types';
 import { CustomDropdown } from '../components/ui/CustomDropdown';
 import { useAuthStore } from '../store/useAuthStore';
+import { useSettingsStore } from '../store/useSettingsStore';
 
 const STATUSES: InvoiceStatus[] = [
   'Uploaded', 'Processing', 'OCR Complete', 'PII Masked', 'Extraction Complete',
@@ -200,6 +201,60 @@ function InvoiceEditModal({ invoice, onClose, onSaved, vendors }: InvoiceEditMod
   );
 }
 
+function DeleteConfirmModal({ invoice, onCancel, onConfirm, isDeleting }: {
+  invoice: Invoice;
+  onCancel: () => void;
+  onConfirm: () => void;
+  isDeleting: boolean;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="bg-card border border-border rounded-2xl w-full max-w-md overflow-hidden shadow-2xl p-6 space-y-4">
+        <div className="flex items-center gap-3 text-red-400">
+          <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
+            <AlertTriangle size={20} />
+          </div>
+          <div>
+            <h3 className="text-white font-bold text-lg">Delete Invoice</h3>
+            <p className="text-muted text-xs">This action cannot be undone</p>
+          </div>
+        </div>
+
+        <p className="text-muted text-sm leading-relaxed">
+          Are you sure you want to delete invoice <span className="text-white font-mono font-semibold">{invoice.invoiceNumber}</span>? 
+          All extraction data, validation runs, and pipeline logs related to this invoice will be permanently removed.
+        </p>
+
+        <div className="flex gap-3 pt-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isDeleting}
+            className="btn-ghost flex-1 text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="btn-danger flex-1 flex items-center justify-center gap-2 text-sm bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-xl font-medium transition-colors"
+          >
+            {isDeleting ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Deleting…
+              </>
+            ) : (
+              'Confirm Delete'
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function InvoiceList() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
@@ -210,7 +265,9 @@ export default function InvoiceList() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [viewInvoice, setViewInvoice] = useState<Invoice | null>(null);
   const [editInvoice, setEditInvoice] = useState<Invoice | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Invoice | null>(null);
   const { user } = useAuthStore();
+  const { compactTableView, autoRefreshEnabled } = useSettingsStore();
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['invoices', search, statusFilter, vendorFilter, page, sortField, sortDir],
@@ -223,7 +280,7 @@ export default function InvoiceList() {
         limit: 15,
         sort: sortDir === 'desc' ? `-${sortField}` : sortField,
       }).then((apiResponse) => apiResponse.data),
-    refetchInterval: 8000,
+    refetchInterval: autoRefreshEnabled ? 8000 : false,
   });
 
   const handleRefresh = async () => {
@@ -244,6 +301,7 @@ export default function InvoiceList() {
     mutationFn: (id: string) => invoiceService.delete(id),
     onSuccess: () => {
       toast.success('Invoice deleted');
+      setDeleteTarget(null);
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
@@ -368,8 +426,8 @@ export default function InvoiceList() {
                     <SortIcon field="amount" />
                   </div>
                 </th>
-                <th className="text-center px-4 py-3.5 font-medium whitespace-nowrap">Currency</th>
-                <th className="text-center px-4 py-3.5 font-medium cursor-pointer hover:text-white transition-colors whitespace-nowrap" onClick={() => toggleSort('confidenceScore')}>
+                <th className="text-center px-4 py-3.5 font-medium whitespace-nowrap hidden md:table-cell">Currency</th>
+                <th className="text-center px-4 py-3.5 font-medium cursor-pointer hover:text-white transition-colors whitespace-nowrap hidden sm:table-cell" onClick={() => toggleSort('confidenceScore')}>
                   <div className="flex items-center justify-center gap-1">
                     <span>Confidence</span>
                     <SortIcon field="confidenceScore" />
@@ -381,7 +439,7 @@ export default function InvoiceList() {
                     <SortIcon field="status" />
                   </div>
                 </th>
-                <th className="text-right px-4 py-3.5 font-medium cursor-pointer hover:text-white transition-colors whitespace-nowrap" onClick={() => toggleSort('uploadedAt')}>
+                <th className="text-right px-4 py-3.5 font-medium cursor-pointer hover:text-white transition-colors whitespace-nowrap hidden sm:table-cell" onClick={() => toggleSort('uploadedAt')}>
                   <div className="flex items-center justify-end gap-1">
                     <span>Uploaded</span>
                     <SortIcon field="uploadedAt" />
@@ -394,11 +452,14 @@ export default function InvoiceList() {
               {isLoading ? (
                 Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i} className="border-b border-border/30">
-                    {Array.from({ length: 8 }).map((_, j) => (
-                      <td key={j} className="px-4 py-3.5">
-                        <div className="h-4 bg-border/30 rounded animate-pulse" />
-                      </td>
-                    ))}
+                    <td className="px-4 py-3.5"><div className="h-4 bg-border/30 rounded animate-pulse" /></td>
+                    <td className="px-4 py-3.5"><div className="h-4 bg-border/30 rounded animate-pulse" /></td>
+                    <td className="px-4 py-3.5"><div className="h-4 bg-border/30 rounded animate-pulse" /></td>
+                    <td className="px-4 py-3.5 hidden md:table-cell"><div className="h-4 bg-border/30 rounded animate-pulse" /></td>
+                    <td className="px-4 py-3.5 hidden sm:table-cell"><div className="h-4 bg-border/30 rounded animate-pulse" /></td>
+                    <td className="px-4 py-3.5"><div className="h-4 bg-border/30 rounded animate-pulse" /></td>
+                    <td className="px-4 py-3.5 hidden sm:table-cell"><div className="h-4 bg-border/30 rounded animate-pulse" /></td>
+                    <td className="px-4 py-3.5"><div className="h-4 bg-border/30 rounded animate-pulse" /></td>
                   </tr>
                 ))
               ) : !data?.data?.length ? (
@@ -411,19 +472,20 @@ export default function InvoiceList() {
               ) : (
                 data.data.map((invoiceRow) => {
                   const statusStyle = STATUS_CONFIG[invoiceRow.status];
+                  const cellPadding = compactTableView ? 'py-1.5' : 'py-3.5';
                   return (
                     <tr key={invoiceRow._id} className="table-row">
-                      <td className="px-5 py-3.5 font-mono text-white text-xs font-semibold">{invoiceRow.invoiceNumber}</td>
-                      <td className="px-4 py-3.5 text-muted text-sm">
+                      <td className={cn('px-5 font-mono text-white text-xs font-semibold', cellPadding)}>{invoiceRow.invoiceNumber}</td>
+                      <td className={cn('px-4 text-muted text-sm', cellPadding)}>
                         {(invoiceRow.vendor as any)?.vendorName ?? <span className="italic opacity-50">No vendor</span>}
                       </td>
-                      <td className="px-4 py-3.5 text-right font-semibold text-white">
+                      <td className={cn('px-4 text-right font-semibold text-white', cellPadding)}>
                         {formatCurrency(invoiceRow.amount, invoiceRow.currency)}
                       </td>
-                      <td className="px-4 py-3.5 text-center">
+                      <td className={cn('px-4 text-center hidden md:table-cell', cellPadding)}>
                         <span className="badge bg-border/40 text-muted text-xs">{invoiceRow.currency}</span>
                       </td>
-                      <td className="px-4 py-3.5 text-center">
+                      <td className={cn('px-4 text-center hidden sm:table-cell', cellPadding)}>
                         {invoiceRow.confidenceScore != null ? (
                           <span className={cn('font-semibold text-sm',
                             invoiceRow.confidenceScore >= 80 ? 'text-emerald-400' :
@@ -435,7 +497,7 @@ export default function InvoiceList() {
                           <span className="text-muted text-xs">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3.5 text-center">
+                      <td className={cn('px-4 text-center', cellPadding)}>
                         <span className={cn('badge', statusStyle.bg, statusStyle.color)}>
                           <span className={cn('w-1.5 h-1.5 rounded-full mr-1.5 inline-block', statusStyle.dot,
                             ['Processing', 'OCR Complete', 'Extraction Complete'].includes(invoiceRow.status) && 'animate-pulse'
@@ -443,8 +505,8 @@ export default function InvoiceList() {
                           {invoiceRow.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3.5 text-right text-muted text-xs">{formatDate(invoiceRow.uploadedAt)}</td>
-                      <td className="px-4 py-3.5">
+                      <td className={cn('px-4 text-right text-muted text-xs hidden sm:table-cell', cellPadding)}>{formatDate(invoiceRow.uploadedAt)}</td>
+                      <td className={cn('px-4', cellPadding)}>
                         <div className="flex items-center justify-center gap-1">
                           <button
                             onClick={() => setViewInvoice(invoiceRow)}
@@ -463,11 +525,7 @@ export default function InvoiceList() {
                                 <Edit2 size={15} />
                               </button>
                               <button
-                                onClick={() => {
-                                  if (confirm(`Delete invoice ${invoiceRow.invoiceNumber}?`)) {
-                                    deleteMutation.mutate(invoiceRow._id);
-                                  }
-                                }}
+                                onClick={() => setDeleteTarget(invoiceRow)}
                                 className="p-1.5 text-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                 title="Delete"
                               >
@@ -534,6 +592,15 @@ export default function InvoiceList() {
             queryClient.invalidateQueries({ queryKey: ['dashboard'] });
           }}
           vendors={vendorsRes?.data ?? []}
+        />
+      )}
+
+      {deleteTarget && (
+        <DeleteConfirmModal
+          invoice={deleteTarget}
+          isDeleting={deleteMutation.isPending}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={() => deleteMutation.mutate(deleteTarget._id)}
         />
       )}
     </div>
