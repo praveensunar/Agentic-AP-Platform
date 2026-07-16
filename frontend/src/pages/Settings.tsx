@@ -166,7 +166,7 @@ export default function Settings() {
           { infoLabel: 'Platform',    infoValue: 'Agentic AP Platform'   },
           { infoLabel: 'Version',     infoValue: '1.0.0'                 },
           { infoLabel: 'Backend',     infoValue: 'Node.js + Express.js'  },
-          { infoLabel: 'Database',    infoValue: 'MongoDB + Mongoose'    },
+          { infoLabel: 'Database',    infoValue: 'JSON File Storage'     },
           { infoLabel: 'Real-time',   infoValue: 'Socket.IO'             },
           { infoLabel: 'Frontend',    infoValue: 'React + TypeScript'    },
         ].map(({ infoLabel, infoValue }) => (
